@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+<html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ResumeCraft — Professional CV Builder</title>
+
+<meta name="description" content="Create a professional resume with ResumeCraft. Build, customize and download your CV with ease.">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<header class="navbar">
+
+    <a href="#" class="logo">
+        <span class="logo-icon">
+            <i class="fa-solid fa-file-lines"></i>
+        </span>
+
+        <span>Resume<span class="logo-highlight">Craft</span></span>
+    </a>
+
+    <nav class="nav-links">
+        <a href="#editor" class="active">Resume Builder</a>
+        <a href="#templates">Templates</a>
+        <a href="#features">Features</a>
+    </nav>
+
+    <div class="nav-actions">
+        <span class="autosave-status">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="saveStatus">Ready to create</span>
+        </span>
+
+        <button type="button" class="btn btn-primary" id="downloadBtn">
+            <i class="fa-solid fa-download"></i>
+            Download PDF
+        </button>
+
+        <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+</header>
+
+
+<!-- ================= HERO SECTION ================= -->
+
+<section class="hero" id="features">
+
+    <div class="hero-content">
+
+        <div class="hero-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            YOUR CAREER, BEAUTIFULLY PRESENTED
+        </div>
+
+        <h1>
+            Build a resume that<br>
+            <span>opens new doors.</span>
+        </h1>
+
+        <p>
+            Create a polished, professional resume in minutes.
+            Customize your details, preview your design, and get
+            ready for your next big opportunity.
+        </p>
+
+        <div class="hero-stats">
+            <div>
+                <i class="fa-solid fa-circle-check"></i>
+                Easy to customize
+            </div>
+
+            <div>
+                <i class="fa-solid fa-bolt"></i>
+                Live preview
+            </div>
+
+            <div>
+                <i class="fa-solid fa-file-pdf"></i>
+                PDF ready
+            </div>
+        </div>
+
+    </div>
+
+    <div class="hero-decoration">
+        <div class="decoration-card decoration-card-back">
+            <div class="decoration-line"></div>
+            <div class="decoration-line short"></div>
+            <div class="decoration-line"></div>
+        </div>
+
+        <div class="decoration-card decoration-card-front">
+            <div class="decoration-profile"></div>
+
+            <div class="decoration-title"></div>
+            <div class="decoration-subtitle"></div>
+
+            <div class="decoration-section"></div>
+            <div class="decoration-line"></div>
+            <div class="decoration-line short"></div>
+
+            <div class="decoration-section"></div>
+            <div class="decoration-line"></div>
+            <div class="decoration-line short"></div>
+        </div>
+
+        <div class="floating-badge">
+            <i class="fa-solid fa-star"></i>
+            Professional quality
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ================= MAIN EDITOR ================= -->
+
+<main class="editor-layout" id="editor">
+
+    <!-- LEFT EDITOR PANEL -->
+
+    <aside class="editor-panel">
+
+        <div class="panel-heading">
+            <div>
+                <span class="eyebrow">RESUME WORKSPACE</span>
+                <h2>Build your resume</h2>
+                <p>Fill in your details to get started.</p>
+            </div>
+
+            <button type="button" class="icon-btn" id="resetBtn" title="Reset resume" aria-label="Reset resume">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+
+
+        <!-- PROGRESS -->
+
+        <div class="progress-card">
+
+            <div class="progress-info">
+                <span>Resume completion</span>
+                <strong id="progressText">0%</strong>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <p>Complete your profile to create a stronger resume.</p>
+
+        </div>
+
+
+        <!-- EDITOR TABS -->
+
+        <div class="editor-tabs" role="tablist" aria-label="Resume sections">
+
+            <button type="button" class="editor-tab active" data-tab="personal" role="tab" aria-selected="true">
+                <i class="fa-solid fa-user"></i>
+                Personal
+            </button>
+
+            <button type="button" class="editor-tab" data-tab="experience" role="tab" aria-selected="false">
+                <i class="fa-solid fa-briefcase"></i>
+                Experience
+            </button>
+
+            <button type="button" class="editor-tab" data-tab="education" role="tab" aria-selected="false">
+                <i class="fa-solid fa-graduation-cap"></i>
+                Education
+            </button>
+
+            <button type="button" class="editor-tab" data-tab="skills" role="tab" aria-selected="false">
+                <i class="fa-solid fa-lightbulb"></i>
+                Skills
+            </button>
+
+        </div>
+
+
+        <!-- ================= PERSONAL DETAILS ================= -->
+
+        <section class="form-section active" id="tab-personal" data-section="personal">
+
+            <div class="section-heading">
+                <div class="section-icon">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div>
+                    <h3>Personal information</h3>
+                    <p>Introduce yourself to employers.</p>
+                </div>
+            </div>
+
+
+            <!-- PROFILE PHOTO -->
+
+            <div class="photo-upload-wrapper">
+
+                <div class="photo-preview" id="photoPreview">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="photo-upload-info">
+                    <h4>Profile photo</h4>
+                    <p>JPG or PNG, preferably a square image.</p>
+
+                    <label for="profilePhoto" class="upload-btn">
+                        <i class="fa-solid fa-upload"></i>
+                        Upload photo
+                    </label>
+
+                    <input type="file" id="profilePhoto" accept="image/png,image/jpeg,image/webp" hidden>
+                </div>
+
+            </div>
+
+
+            <form id="personalForm">
+
+                <div class="form-grid">
+
+                    <div class="form-group full-width">
+                        <label for="fullName">Full name <span class="required">*</span></label>
+
+                        <input
+                            type="text"
+                            id="fullName"
+                            name="fullName"
+                            placeholder="e.g. Alex Morgan"
+                            autocomplete="name"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group full-width">
+                        <label for="jobTitle">Professional title</label>
+
+                        <input
+                            type="text"
+                            id="jobTitle"
+                            name="jobTitle"
+                            placeholder="e.g. Frontend Developer"
+                            maxlength="120"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="alex@example.com"
+                            autocomplete="email"
+                            maxlength="150"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="phone">Phone number</label>
+
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            placeholder="+1 234 567 890"
+                            autocomplete="tel"
+                            maxlength="30"
+                        >
+                    </div>
+
+
+                    <div class="form-group full-width">
+                        <label for="address">Location</label>
+
+                        <input
+                            type="text"
+                            id="address"
+                            name="address"
+                            placeholder="City, Country"
+                            autocomplete="address-level2"
+                            maxlength="150"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="linkedin">LinkedIn profile</label>
+
+                        <input
+                            type="url"
+                            id="linkedin"
+                            name="linkedin"
+                            placeholder="https://linkedin.com/in/..."
+                            maxlength="300"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="website">Portfolio / Website</label>
+
+                        <input
+                            type="url"
+                            id="website"
+                            name="website"
+                            placeholder="https://yourwebsite.com"
+                            maxlength="300"
+                        >
+                    </div>
+
+
+                    <div class="form-group full-width">
+                        <label for="summary">Professional summary</label>
+
+                        <textarea
+                            id="summary"
+                            name="summary"
+                            rows="5"
+                            maxlength="1200"
+                            placeholder="Write a brief introduction about your experience, strengths, and career goals..."
+                        ></textarea>
+
+                        <div class="field-footer">
+                            <span>Keep it clear and professional.</span>
+                            <span><span id="summaryCount">0</span>/1200</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- ================= EXPERIENCE ================= -->
+
+        <section class="form-section" id="tab-experience" data-section="experience" hidden>
+
+            <div class="section-heading">
+                <div class="section-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+
+                <div>
+                    <h3>Work experience</h3>
+                    <p>Show employers what you have accomplished.</p>
+                </div>
+            </div>
+
+
+            <div id="experienceList">
+
+                <article class="repeatable-card experience-item">
+
+                    <div class="repeatable-card-header">
+                        <h4><i class="fa-solid fa-building"></i> Experience 1</h4>
+
+                        <button type="button" class="remove-btn" data-remove="experience" aria-label="Remove experience">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="form-group full-width">
+                            <label>Job title</label>
+                            <input type="text" name="expTitle" placeholder="e.g. Software Engineer" maxlength="120">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Company name</label>
+                            <input type="text" name="expCompany" placeholder="e.g. Acme Inc." maxlength="150">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start date</label>
+                            <input type="month" name="expStart">
+                        </div>
+
+                        <div class="form-group">
+                            <label>End date</label>
+                            <input type="month" name="expEnd">
+                        </div>
+
+                        <div class="form-group full-width checkbox-group">
+                            <label>
+                                <input type="checkbox" name="expCurrent">
+                                I currently work here
+                            </label>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea name="expDescription" rows="4" maxlength="1500" placeholder="Describe your responsibilities and achievements..."></textarea>
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+
+            <button type="button" class="btn btn-outline add-item-btn" id="addExperience">
+                <i class="fa-solid fa-plus"></i>
+                Add experience
+            </button>
+
+        </section>
+
+
+        <!-- ================= EDUCATION ================= -->
+
+        <section class="form-section" id="tab-education" data-section="education" hidden>
+
+            <div class="section-heading">
+                <div class="section-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+
+                <div>
+                    <h3>Education</h3>
+                    <p>Add your academic background.</p>
+                </div>
+            </div>
+
+
+            <div id="educationList">
+
+                <article class="repeatable-card education-item">
+
+                    <div class="repeatable-card-header">
+                        <h4><i class="fa-solid fa-book-open"></i> Education 1</h4>
+
+                        <button type="button" class="remove-btn" data-remove="education" aria-label="Remove education">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="form-group full-width">
+                            <label>Degree / Qualification</label>
+                            <input type="text" name="eduDegree" placeholder="e.g. Bachelor's in Computer Science" maxlength="150">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Institution</label>
+                            <input type="text" name="eduSchool" placeholder="University or college name" maxlength="150">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start year</label>
+                            <input type="number" name="eduStart" placeholder="2020" min="1950" max="2100">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Graduation year</label>
+                            <input type="number" name="eduEnd" placeholder="2024" min="1950" max="2100">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Additional details</label>
+                            <textarea name="eduDescription" rows="3" maxlength="800" placeholder="Achievements, grades, or relevant coursework..."></textarea>
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+
+            <button type="button" class="btn btn-outline add-item-btn" id="addEducation">
+                <i class="fa-solid fa-plus"></i>
+                Add education
+            </button>
+
+        </section>
+
+
+        <!-- ================= SKILLS ================= -->
+
+        <section class="form-section" id="tab-skills" data-section="skills" hidden>
+
+            <div class="section-heading">
+                <div class="section-icon">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+
+                <div>
+                    <h3>Skills & expertise</h3>
+                    <p>Highlight your strongest abilities.</p>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="skillInput">Add a skill</label>
+
+                <div class="skill-input-wrapper">
+                    <input
+                        type="text"
+                        id="skillInput"
+                        placeholder="e.g. JavaScript"
+                        maxlength="60"
+                    >
+
+                    <button type="button" id="addSkillBtn" class="btn btn-primary" aria-label="Add skill">
+                        <i class="fa-solid fa-plus"></i>
+                        Add
+                    </button>
+                </div>
+
+                <p class="input-hint">Press Enter or click Add to include a skill.</p>
+            </div>
+
+
+            <div class="skills-container" id="skillsContainer">
+                <span class="skill-chip">
+                    HTML5
+                    <button type="button" aria-label="Remove HTML5" data-skill-remove="HTML5">&times;</button>
+                </span>
+
+                <span class="skill-chip">
+                    CSS3
+                    <button type="button" aria-label="Remove CSS3" data-skill-remove="CSS3">&times;</button>
+                </span>
+
+                <span class="skill-chip">
+                    JavaScript
+                    <button type="button" aria-label="Remove JavaScript" data-skill-remove="JavaScript">&times;</button>
+                </span>
+            </div>
+
+
+            <div class="skills-tip">
+                <i class="fa-solid fa-circle-info"></i>
+
+                <div>
+                    <strong>Pro tip</strong>
+                    <p>Prioritize skills relevant to the job you are applying for.</p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- EDITOR FOOTER -->
+
+        <div class="editor-footer">
+
+            <button type="button" class="btn btn-outline" id="backBtn" disabled>
+                <i class="fa-solid fa-arrow-left"></i>
+                Back
+            </button>
+
+            <button type="button" class="btn btn-primary" id="nextBtn">
+                Next section
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ================= LIVE PREVIEW PANEL ================= -->
+
+    <section class="preview-panel">
+
+        <div class="preview-toolbar">
+
+            <div class="preview-heading">
+                <span class="live-indicator"></span>
+
+                <div>
+                    <h2>Live preview</h2>
+                    <p>Your resume updates as you type.</p>
+                </div>
+            </div>
+
+
+            <div class="preview-actions">
+
+                <div class="zoom-control">
+                    <button type="button" id="zoomOut" aria-label="Zoom out">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+
+                    <span id="zoomLevel">100%</span>
+
+                    <button type="button" id="zoomIn" aria-label="Zoom in">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+
+                <button type="button" class="icon-btn" id="fullscreenBtn" title="Toggle preview fullscreen" aria-label="Toggle preview fullscreen">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- TEMPLATE SELECTOR -->
+
+        <div class="template-toolbar" id="templates">
+
+            <div class="template-toolbar-heading">
+                <span>Choose template</span>
+                <span class="template-count">3 designs</span>
+            </div>
+
+            <div class="template-options">
+
+                <button type="button" class="template-option active" data-template="modern" aria-pressed="true">
+                    <span class="template-mini modern-mini">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+
+                    <span>Modern</span>
+                </button>
+
+
+                <button type="button" class="template-option" data-template="classic" aria-pressed="false">
+                    <span class="template-mini classic-mini">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+
+                    <span>Classic</span>
+                </button>
+
+
+                <button type="button" class="template-option" data-template="minimal" aria-pressed="false">
+                    <span class="template-mini minimal-mini">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+
+                    <span>Minimal</span>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESUME PAPER -->
+
+        <div class="resume-stage" id="resumeStage">
+
+            <article class="resume-paper template-modern" id="resumePaper">
+
+                <!-- RESUME HEADER -->
+
+                <header class="resume-header">
+
+                    <div class="resume-header-content">
+
+                        <h1 id="previewName">Your Name</h1>
+
+                        <p class="resume-job-title" id="previewJobTitle">
+                            Your Professional Title
+                        </p>
+
+                        <div class="resume-contact" id="previewContact">
+
+                            <span>
+                                <i class="fa-solid fa-envelope"></i>
+                                <span id="previewEmail">your.email@example.com</span>
+                            </span>
+
+                            <span>
+                                <i class="fa-solid fa-phone"></i>
+                                <span id="previewPhone">+1 234 567 890</span>
+                            </span>
+
+                            <span>
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span id="previewAddress">City, Country</span>
+                            </span>
+
+                        </div>
+
+                        <div class="resume-social-links" id="previewSocialLinks"></div>
+
+                    </div>
+
+
+                    <div class="resume-photo-wrapper" id="resumePhotoWrapper">
+                        <img id="previewPhoto" src="" alt="Profile photo" hidden>
+
+                        <div class="resume-photo-placeholder" id="previewPhotoPlaceholder">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+
+                </header>
+
+
+                <!-- PROFESSIONAL SUMMARY -->
+
+                <section class="resume-section" id="summarySection">
+
+                    <h2 class="resume-section-title">Professional Summary</h2>
+
+                    <p class="resume-summary" id="previewSummary">
+                        Your professional summary will appear here. Write a concise introduction highlighting your experience, key strengths, and career goals.
+                    </p>
+
+                </section>
+
+
+                <!-- WORK EXPERIENCE -->
+
+                <section class="resume-section" id="previewExperienceSection">
+
+                    <h2 class="resume-section-title">Work Experience</h2>
+
+                    <div id="previewExperienceList">
+
+                        <article class="resume-entry">
+                            <div class="resume-entry-heading">
+                                <h3>Job Title</h3>
+                                <span class="resume-date">Start – End</span>
+                            </div>
+
+                            <p class="resume-entry-subtitle">Company Name</p>
+
+                            <p class="resume-entry-description">
+                                Your work experience and achievements will appear here.
+                            </p>
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- EDUCATION -->
+
+                <section class="resume-section" id="previewEducationSection">
+
+                    <h2 class="resume-section-title">Education</h2>
+
+                    <div id="previewEducationList">
+
+                        <article class="resume-entry">
+                            <div class="resume-entry-heading">
+                                <h3>Your Degree</h3>
+                                <span class="resume-date">Year</span>
+                            </div>
+
+                            <p class="resume-entry-subtitle">University or Institution</p>
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SKILLS -->
+
+                <section class="resume-section" id="previewSkillsSection">
+
+                    <h2 class="resume-section-title">Skills</h2>
+
+                    <div class="resume-skills" id="previewSkills">
+                        <span>HTML5</span>
+                        <span>CSS3</span>
+                        <span>JavaScript</span>
+                    </div>
+
+                </section>
+
+
+                <footer class="resume-footer">
+                    Created with ResumeCraft
+                </footer>
+
+            </article>
+
+        </div>
+
+
+        <!-- PREVIEW FOOTER -->
+
+        <div class="preview-footer">
+
+            <div class="preview-footer-info">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Your resume is processed in your browser.</span>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="previewDownloadBtn">
+                <i class="fa-solid fa-file-pdf"></i>
+                Export resume
+            </button>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- ================= TOAST NOTIFICATION ================= -->
+
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true">
+
+    <div class="toast" id="toastMessage">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastText">Changes saved successfully.</span>
+    </div>
+
+</div>
+
+
+<!-- ================= CONFIRMATION MODAL ================= -->
+
+<div class="modal-overlay" id="resetModal" hidden>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+
+        <div class="modal-icon">
+            <i class="fa-solid fa-rotate-left"></i>
+        </div>
+
+        <h2 id="resetModalTitle">Reset your resume?</h2>
+
+        <p>
+            This will clear your current resume details and restore
+            the default template.
+        </p>
+
+        <div class="modal-actions">
+
+            <button type="button" class="btn btn-outline" id="cancelResetBtn">
+                Cancel
+            </button>
+
+            <button type="button" class="btn btn-danger" id="confirmResetBtn">
+                Reset resume
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="site-footer">
+
+    <a href="#" class="logo footer-logo">
+        <span class="logo-icon">
+            <i class="fa-solid fa-file-lines"></i>
+        </span>
+
+        <span>Resume<span class="logo-highlight">Craft</span></span>
+    </a>
+
+    <p>Make your next career move with confidence.</p>
+
+    <span class="copyright">
+        &copy; <span id="currentYear">2026</span> ResumeCraft. All rights reserved.
+    </span>
+
+</footer>
+
+
+<!-- JAVASCRIPT -->
+
+<script src="script.js"></script>
+
+<footer class="developer-footer"> <p> Website Designed &amp; Developed by <span class="developer-name">Arman Ansari</span> </p> </footer>
+
+</body> </html>
