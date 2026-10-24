@@ -1242,3 +1242,92 @@ body * {
 
 
 }
+
+/* ===== PROFESSIONAL MULTI-PAGE CV ===== */
+
+#resumePaper {
+    width: 210mm;
+    min-height: 297mm;
+    height: auto;
+    background: #ffffff;
+    color: #1e293b;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* Resume sections */
+#resumePaper .resume-section {
+    margin-bottom: 22px;
+    break-inside: auto;
+}
+
+/* Keep individual experience and education entries together */
+#resumePaper .resume-entry {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+/* Keep section headings with the following content */
+#resumePaper .resume-section h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+/* Prevent long text from overflowing */
+#resumePaper p,
+#resumePaper h3 {
+    overflow-wrap: anywhere;
+}
+
+/* Print settings */
+@media print {
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #resumePaper,
+    #resumePaper * {
+        visibility: visible;
+    }
+
+    #resumePaper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        transform: none !important;
+        box-shadow: none !important;
+        font-size: 10pt;
+    }
+
+    #resumePaper .resume-section {
+        break-inside: auto;
+        page-break-inside: auto;
+    }
+
+    #resumePaper .resume-entry {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    #resumePaper .resume-section h2 {
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+}
