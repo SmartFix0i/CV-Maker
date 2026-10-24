@@ -1,14 +1,29 @@
-document.addEventListener("DOMContentLoaded", () => { const $ = (s, p = document) => p.querySelector(s); const $$ = (s, p = document) => [...p.querySelectorAll(s)];
+document.addEventListener("DOMContentLoaded", () => { "use strict";
 
-const storageKey = "resumecraft-data-v1";
+// ==========================================
+// RESUMECRAFT - PROFESSIONAL CV BUILDER
+// ==========================================
 
-const sections = ["personal", "experience", "education", "skills"];
+const $ = (selector, parent = document) =>
+    parent.querySelector(selector);
+
+const $$ = (selector, parent = document) =>
+    [...parent.querySelectorAll(selector)];
+
+const storageKey = "resumecraft-data-v2";
+
+const sections = [
+    "personal",
+    "experience",
+    "education",
+    "skills"
+];
+
 let currentTab = 0;
 let zoom = 1;
 let photoData = "";
 let toastTimer;
 let saveTimer;
-
 let skills = ["HTML5", "CSS3", "JavaScript"];
 
 const defaultData = {
@@ -22,26 +37,27 @@ const defaultData = {
     summary: ""
 };
 
-// ==================== TOAST ====================
+const sectionOrder = [
+    "summary",
+    "experience",
+    "skills",
+    "education"
+];
 
-function toast(message, success = true) {
-    const box = $("#toastMessage");
-    $("#toastText").textContent = message;
+const personalFields = [
+    "fullName",
+    "jobTitle",
+    "email",
+    "phone",
+    "address",
+    "linkedin",
+    "website",
+    "summary"
+];
 
-    const icon = $("i", box);
-    icon.className = success
-        ? "fa-solid fa-circle-check"
-        : "fa-solid fa-circle-exclamation";
-
-    box.classList.add("show");
-
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        box.classList.remove("show");
-    }, 2600);
-}
-
-// ==================== SAFE HTML ====================
+// ==========================================
+// SAFE HTML AND UTILITIES
+// ==========================================
 
 function escapeHTML(value = "") {
     return String(value).replace(/[&<>"']/g, char => ({
@@ -56,6 +72,7 @@ function escapeHTML(value = "") {
 function safeURL(value) {
     try {
         const url = new URL(value);
+
         return ["http:", "https:"].includes(url.protocol)
             ? url.href
             : "";
@@ -64,34 +81,114 @@ function safeURL(value) {
     }
 }
 
-// ==================== TABS ====================
+function formatMonth(value) {
+    if (!value) return "";
+
+    const parts = value.split("-");
+
+    if (parts.length !== 2) return value;
+
+    const date = new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        1
+    );
+
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function setText(id, value, fallback = "") {
+    const element = $(`#${id}`);
+
+    if (element) {
+        element.textContent = value || fallback;
+    }
+}
+
+function getValue(id) {
+    return $(`#${id}`)?.value.trim() || "";
+}
+
+function debounceSave() {
+    scheduleSave();
+}
+
+// ==========================================
+// TOAST NOTIFICATIONS
+// ==========================================
+
+function toast(message, success = true) {
+    const box = $("#toastMessage");
+    const text = $("#toastText");
+
+    if (!box || !text) return;
+
+    text.textContent = message;
+
+    const icon = $("i", box);
+
+    if (icon) {
+        icon.className = success
+            ? "fa-solid fa-circle-check"
+            : "fa-solid fa-circle-exclamation";
+    }
+
+    box.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+        box.classList.remove("show");
+    }, 2800);
+}
+
+// ==========================================
+// EDITOR TABS
+// ==========================================
 
 function showTab(index) {
-    currentTab = Math.max(0, Math.min(index, sections.length - 1));
+    currentTab = Math.max(
+        0,
+        Math.min(index, sections.length - 1)
+    );
 
     $$(".editor-tab").forEach((tab, i) => {
         const active = i === currentTab;
+
         tab.classList.toggle("active", active);
-        tab.setAttribute("aria-selected", String(active));
+        tab.setAttribute(
+            "aria-selected",
+            String(active)
+        );
     });
 
     sections.forEach((section, i) => {
         const panel = $(`#tab-${section}`);
+
+        if (!panel) return;
+
         panel.hidden = i !== currentTab;
-        panel.classList.toggle("active", i === currentTab);
+        panel.classList.toggle(
+            "active",
+            i === currentTab
+        );
     });
 
     $("#backBtn").disabled = currentTab === 0;
 
-    $("#nextBtn").innerHTML = currentTab === sections.length - 1
-        ? 'Finish <i class="fa-solid fa-check"></i>'
-        : 'Next section <i class="fa-solid fa-arrow-right"></i>';
-
-    $("#nextBtn").disabled = false;
+    $("#nextBtn").innerHTML =
+        currentTab === sections.length - 1
+            ? 'Finish <i class="fa-solid fa-check"></i>'
+            : 'Next section <i class="fa-solid fa-arrow-right"></i>';
 }
 
-$$(".editor-tab").forEach((tab, i) => {
-    tab.addEventListener("click", () => showTab(i));
+$$(".editor-tab").forEach((tab, index) => {
+    tab.addEventListener("click", () => {
+        showTab(index);
+    });
 });
 
 $("#backBtn").addEventListener("click", () => {
@@ -101,53 +198,62 @@ $("#backBtn").addEventListener("click", () => {
 $("#nextBtn").addEventListener("click", () => {
     if (currentTab < sections.length - 1) {
         showTab(currentTab + 1);
-    } else {
-        updatePreview();
-        toast("Your resume is ready to preview!");
-        $("#resumeStage").scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        return;
     }
+
+    updatePreview();
+
+    toast("Your resume is ready!");
+
+    $("#resumeStage").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 });
 
-// ==================== PERSONAL DETAILS ====================
-
-const personalFields = [
-    "fullName",
-    "jobTitle",
-    "email",
-    "phone",
-    "address",
-    "linkedin",
-    "website",
-    "summary"
-];
-
-function getValue(id) {
-    return $(`#${id}`).value.trim();
-}
-
-function setText(id, value, fallback = "") {
-    $(`#${id}`).textContent = value || fallback;
-}
+// ==========================================
+// PERSONAL DETAILS
+// ==========================================
 
 function updatePersonalPreview() {
-    setText("previewName", getValue("fullName"), "Your Name");
-    setText("previewJobTitle", getValue("jobTitle"), "Your Professional Title");
-    setText("previewEmail", getValue("email"), "your.email@example.com");
-    setText("previewPhone", getValue("phone"), "+1 234 567 890");
-    setText("previewAddress", getValue("address"), "City, Country");
+    setText(
+        "previewName",
+        getValue("fullName"),
+        "Your Name"
+    );
 
-    const summary = getValue("summary");
+    setText(
+        "previewJobTitle",
+        getValue("jobTitle"),
+        "Your Professional Title"
+    );
+
+    setText(
+        "previewEmail",
+        getValue("email"),
+        "your.email@example.com"
+    );
+
+    setText(
+        "previewPhone",
+        getValue("phone"),
+        "+1 234 567 890"
+    );
+
+    setText(
+        "previewAddress",
+        getValue("address"),
+        "City, Country"
+    );
 
     setText(
         "previewSummary",
-        summary,
-        "Your professional summary will appear here. Write a concise introduction highlighting your experience, key strengths, and career goals."
+        getValue("summary"),
+        "Your professional summary will appear here."
     );
 
-    $("#summaryCount").textContent = $("#summary").value.length;
+    $("#summaryCount").textContent =
+        $("#summary").value.length;
 
     const links = [];
 
@@ -155,21 +261,31 @@ function updatePersonalPreview() {
     const website = safeURL(getValue("website"));
 
     if (linkedin) {
-        links.push(
-            `<a href="${escapeHTML(linkedin)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
-        );
+        links.push(`
+            <a href="${escapeHTML(linkedin)}"
+               target="_blank"
+               rel="noopener noreferrer">
+               LinkedIn
+            </a>
+        `);
     }
 
     if (website) {
-        links.push(
-            `<a href="${escapeHTML(website)}" target="_blank" rel="noopener noreferrer">Portfolio</a>`
-        );
+        links.push(`
+            <a href="${escapeHTML(website)}"
+               target="_blank"
+               rel="noopener noreferrer">
+               Portfolio
+            </a>
+        `);
     }
 
     $("#previewSocialLinks").innerHTML = links.join("");
 }
 
-// ==================== EXPERIENCE ====================
+// ==========================================
+// EXPERIENCE
+// ==========================================
 
 function collectExperiences() {
     return $$(".experience-item").map(card => ({
@@ -178,10 +294,14 @@ function collectExperiences() {
         start: $('[name="expStart"]', card).value,
         end: $('[name="expEnd"]', card).value,
         current: $('[name="expCurrent"]', card).checked,
-        description: $('[name="expDescription"]', card).value.trim()
+        description:
+            $('[name="expDescription"]', card).value.trim()
     })).filter(item =>
-        item.title || item.company || item.start ||
-        item.end || item.description
+        item.title ||
+        item.company ||
+        item.start ||
+        item.end ||
+        item.description
     );
 }
 
@@ -190,52 +310,67 @@ function updateExperiencePreview() {
     const container = $("#previewExperienceList");
 
     if (!items.length) {
-        container.innerHTML = `
-            <article class="resume-entry">
-                <div class="resume-entry-heading">
-                    <h3>Job Title</h3>
-                    <span class="resume-date">Start – End</span>
-                </div>
-                <p class="resume-entry-subtitle">Company Name</p>
-                <p class="resume-entry-description">
-                    Your work experience and achievements will appear here.
-                </p>
-            </article>`;
+        container.innerHTML = "";
         return;
     }
 
     container.innerHTML = items.map(item => {
-        const start = item.start || "";
-        const end = item.current ? "Present" : item.end;
+        const start = formatMonth(item.start);
 
-        const dates = [start, end].filter(Boolean).join(" – ");
+        const end = item.current
+            ? "Present"
+            : formatMonth(item.end);
+
+        const dates = [start, end]
+            .filter(Boolean)
+            .join(" – ");
 
         return `
             <article class="resume-entry">
                 <div class="resume-entry-heading">
                     <h3>${escapeHTML(item.title || "Job Title")}</h3>
-                    <span class="resume-date">${escapeHTML(dates)}</span>
+                    <span class="resume-date">
+                        ${escapeHTML(dates)}
+                    </span>
                 </div>
 
-                <p class="resume-entry-subtitle">
-                    ${escapeHTML(item.company)}
-                </p>
+                ${item.company ? `
+                    <p class="resume-entry-subtitle">
+                        ${escapeHTML(item.company)}
+                    </p>
+                ` : ""}
 
-                <p class="resume-entry-description">${escapeHTML(item.description)}</p>
-            </article>`;
+                ${item.description ? `
+                    <p class="resume-entry-description">
+                        ${escapeHTML(item.description)}
+                    </p>
+                ` : ""}
+            </article>
+        `;
     }).join("");
 }
 
 function addExperience(data = {}) {
+    if ($$(".experience-item").length >= 20) {
+        toast("Maximum 20 experience entries allowed.", false);
+        return;
+    }
+
     const card = document.createElement("article");
 
     card.className = "repeatable-card experience-item";
 
     card.innerHTML = `
         <div class="repeatable-card-header">
-            <h4><i class="fa-solid fa-building"></i> Experience</h4>
-            <button type="button" class="remove-btn"
-                data-remove="experience" aria-label="Remove experience">
+            <h4>
+                <i class="fa-solid fa-building"></i>
+                Experience
+            </h4>
+
+            <button type="button"
+                class="remove-btn"
+                data-remove="experience"
+                aria-label="Remove experience">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -243,13 +378,15 @@ function addExperience(data = {}) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Job title</label>
-                <input name="expTitle" maxlength="120"
+                <input name="expTitle"
+                    maxlength="120"
                     placeholder="e.g. Software Engineer">
             </div>
 
             <div class="form-group full-width">
                 <label>Company name</label>
-                <input name="expCompany" maxlength="150"
+                <input name="expCompany"
+                    maxlength="150"
                     placeholder="e.g. Acme Inc.">
             </div>
 
@@ -272,26 +409,33 @@ function addExperience(data = {}) {
 
             <div class="form-group full-width">
                 <label>Description</label>
-                <textarea name="expDescription" rows="4"
+                <textarea name="expDescription"
+                    rows="4"
                     maxlength="1500"
-                    placeholder="Describe your achievements..."></textarea>
+                    placeholder="Describe your responsibilities and achievements..."></textarea>
             </div>
-        </div>`;
+        </div>
+    `;
 
     $('[name="expTitle"]', card).value = data.title || "";
     $('[name="expCompany"]', card).value = data.company || "";
     $('[name="expStart"]', card).value = data.start || "";
     $('[name="expEnd"]', card).value = data.end || "";
-    $('[name="expCurrent"]', card).checked = !!data.current;
-    $('[name="expDescription"]', card).value = data.description || "";
+
+    $('[name="expCurrent"]', card).checked =
+        Boolean(data.current);
+
+    $('[name="expDescription"]', card).value =
+        data.description || "";
 
     $("#experienceList").appendChild(card);
-    updateCardTitles();
-    refreshDragDrop();
 
+    updateCardTitles();
 }
 
-// ==================== EDUCATION ====================
+// ==========================================
+// EDUCATION
+// ==========================================
 
 function collectEducation() {
     return $$(".education-item").map(card => ({
@@ -299,10 +443,14 @@ function collectEducation() {
         school: $('[name="eduSchool"]', card).value.trim(),
         start: $('[name="eduStart"]', card).value,
         end: $('[name="eduEnd"]', card).value,
-        description: $('[name="eduDescription"]', card).value.trim()
+        description:
+            $('[name="eduDescription"]', card).value.trim()
     })).filter(item =>
-        item.degree || item.school || item.start ||
-        item.end || item.description
+        item.degree ||
+        item.school ||
+        item.start ||
+        item.end ||
+        item.description
     );
 }
 
@@ -311,44 +459,64 @@ function updateEducationPreview() {
     const container = $("#previewEducationList");
 
     if (!items.length) {
-        container.innerHTML = `
-            <article class="resume-entry">
-                <div class="resume-entry-heading">
-                    <h3>Your Degree</h3>
-                    <span class="resume-date">Year</span>
-                </div>
-                <p class="resume-entry-subtitle">University or Institution</p>
-            </article>`;
+        container.innerHTML = "";
         return;
     }
 
     container.innerHTML = items.map(item => {
-        const dates = [item.start, item.end].filter(Boolean).join(" – ");
+        const dates = [item.start, item.end]
+            .filter(Boolean)
+            .join(" – ");
 
         return `
             <article class="resume-entry">
                 <div class="resume-entry-heading">
-                    <h3>${escapeHTML(item.degree || "Qualification")}</h3>
-                    <span class="resume-date">${escapeHTML(dates)}</span>
+                    <h3>
+                        ${escapeHTML(item.degree || "Qualification")}
+                    </h3>
+
+                    <span class="resume-date">
+                        ${escapeHTML(dates)}
+                    </span>
                 </div>
 
-                <p class="resume-entry-subtitle">${escapeHTML(item.school)}</p>
+                ${item.school ? `
+                    <p class="resume-entry-subtitle">
+                        ${escapeHTML(item.school)}
+                    </p>
+                ` : ""}
 
-                <p class="resume-entry-description">${escapeHTML(item.description)}</p>
-            </article>`;
+                ${item.description ? `
+                    <p class="resume-entry-description">
+                        ${escapeHTML(item.description)}
+                    </p>
+                ` : ""}
+            </article>
+        `;
     }).join("");
 }
 
 function addEducation(data = {}) {
+    if ($$(".education-item").length >= 20) {
+        toast("Maximum 20 education entries allowed.", false);
+        return;
+    }
+
     const card = document.createElement("article");
 
     card.className = "repeatable-card education-item";
 
     card.innerHTML = `
         <div class="repeatable-card-header">
-            <h4><i class="fa-solid fa-book-open"></i> Education</h4>
-            <button type="button" class="remove-btn"
-                data-remove="education" aria-label="Remove education">
+            <h4>
+                <i class="fa-solid fa-book-open"></i>
+                Education
+            </h4>
+
+            <button type="button"
+                class="remove-btn"
+                data-remove="education"
+                aria-label="Remove education">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -356,137 +524,187 @@ function addEducation(data = {}) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Degree / Qualification</label>
-                <input name="eduDegree" maxlength="150"
+                <input name="eduDegree"
+                    maxlength="150"
                     placeholder="e.g. Bachelor's in Computer Science">
             </div>
 
             <div class="form-group full-width">
                 <label>Institution</label>
-                <input name="eduSchool" maxlength="150"
+                <input name="eduSchool"
+                    maxlength="150"
                     placeholder="University or college name">
             </div>
 
             <div class="form-group">
                 <label>Start year</label>
-                <input type="number" name="eduStart"
-                    min="1950" max="2100" placeholder="2020">
+                <input type="number"
+                    name="eduStart"
+                    min="1950"
+                    max="2100"
+                    placeholder="2020">
             </div>
 
             <div class="form-group">
                 <label>Graduation year</label>
-                <input type="number" name="eduEnd"
-                    min="1950" max="2100" placeholder="2024">
+                <input type="number"
+                    name="eduEnd"
+                    min="1950"
+                    max="2100"
+                    placeholder="2024">
             </div>
 
             <div class="form-group full-width">
                 <label>Additional details</label>
-                <textarea name="eduDescription" rows="3"
+                <textarea name="eduDescription"
+                    rows="3"
                     maxlength="800"
-                    placeholder="Achievements or relevant coursework..."></textarea>
+                    placeholder="Achievements, grades, or relevant coursework..."></textarea>
             </div>
-        </div>`;
+        </div>
+    `;
 
     $('[name="eduDegree"]', card).value = data.degree || "";
     $('[name="eduSchool"]', card).value = data.school || "";
     $('[name="eduStart"]', card).value = data.start || "";
     $('[name="eduEnd"]', card).value = data.end || "";
-    $('[name="eduDescription"]', card).value = data.description || "";
+
+    $('[name="eduDescription"]', card).value =
+        data.description || "";
 
     $("#educationList").appendChild(card);
-    updateCardTitles();
-    refreshDragDrop();
 
-    
+    updateCardTitles();
 }
 
-// ==================== CARD TITLES ====================
+// ==========================================
+// CARD TITLES
+// ==========================================
 
 function updateCardTitles() {
     $$(".experience-item").forEach((card, index) => {
-        $("h4", card).innerHTML =
-            `<i class="fa-solid fa-building"></i> Experience ${index + 1}`;
+        $("h4", card).innerHTML = `
+            <i class="fa-solid fa-building"></i>
+            Experience ${index + 1}
+        `;
     });
 
     $$(".education-item").forEach((card, index) => {
-        $("h4", card).innerHTML =
-            `<i class="fa-solid fa-book-open"></i> Education ${index + 1}`;
+        $("h4", card).innerHTML = `
+            <i class="fa-solid fa-book-open"></i>
+            Education ${index + 1}
+        `;
     });
 }
 
+// ==========================================
+// RELIABLE DRAG AND DROP
+// ==========================================
 
-/* ========== DRAG & DROP REORDERING ========== */
+function enableDragDrop(containerSelector, itemSelector) {
+    const container = $(containerSelector);
 
-function enableDragDrop(containerSelector, itemSelector) { const container = document.querySelector(containerSelector);
+    if (!container) return;
 
-if (!container) return;
+    // Event delegation prevents duplicate listeners.
+    container.addEventListener("dragstart", event => {
+        const item = event.target.closest(itemSelector);
 
-let draggedItem = null;
-
-container.querySelectorAll(itemSelector).forEach(item => {
-    item.draggable = true;
-    item.style.cursor = "grab";
-
-    // Drag start
-    item.addEventListener("dragstart", event => {
-        draggedItem = item;
+        if (!item || !container.contains(item)) return;
 
         item.classList.add("dragging");
 
         event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", "reorder");
+
+        event.dataTransfer.setData(
+            "text/plain",
+            itemSelector
+        );
     });
 
-    // Drag over
-    item.addEventListener("dragover", event => {
+    container.addEventListener("dragover", event => {
         event.preventDefault();
 
-        if (!draggedItem || draggedItem === item) return;
+        const dragging = $(".dragging", container);
 
-        const rect = item.getBoundingClientRect();
-        const insertAfter = event.clientY > rect.top + rect.height / 2;
+        const target = event.target.closest(itemSelector);
+
+        if (!dragging || !target || dragging === target) return;
+
+        const rect = target.getBoundingClientRect();
+
+        const insertAfter =
+            event.clientY > rect.top + rect.height / 2;
 
         if (insertAfter) {
-            item.after(draggedItem);
+            target.after(dragging);
         } else {
-            item.before(draggedItem);
+            target.before(dragging);
         }
     });
 
-    // Drop
-    item.addEventListener("drop", event => {
+    container.addEventListener("drop", event => {
         event.preventDefault();
-        updateCardTitles();
-        updatePreview();
-    });
-
-    // Drag end
-    item.addEventListener("dragend", () => {
-        item.classList.remove("dragging");
-        draggedItem = null;
 
         updateCardTitles();
         updatePreview();
     });
-});
 
+    container.addEventListener("dragend", event => {
+        const item = event.target.closest(itemSelector);
 
+        if (item) {
+            item.classList.remove("dragging");
+        }
+
+        updateCardTitles();
+        updatePreview();
+    });
+
+    makeItemsDraggable(container, itemSelector);
 }
 
-function refreshDragDrop() { enableDragDrop("#experienceList", ".experience-item"); enableDragDrop("#educationList", ".education-item"); }
+function makeItemsDraggable(container, itemSelector) {
+    $$(itemSelector, container).forEach(item => {
+        item.draggable = true;
+        item.style.cursor = "grab";
+    });
+}
 
-// Initialize drag and drop refreshDragDrop();
+function refreshDragDrop() {
+    makeItemsDraggable(
+        $("#experienceList"),
+        ".experience-item"
+    );
 
-// ==================== ADD / REMOVE ITEMS ====================
+    makeItemsDraggable(
+        $("#educationList"),
+        ".education-item"
+    );
+}
+
+enableDragDrop("#experienceList", ".experience-item");
+enableDragDrop("#educationList", ".education-item");
+
+// ==========================================
+// ADD / REMOVE EXPERIENCE AND EDUCATION
+// ==========================================
 
 $("#addExperience").addEventListener("click", () => {
     addExperience();
+
+    refreshDragDrop();
     updatePreview();
+
     toast("Experience added.");
 });
 
 $("#addEducation").addEventListener("click", () => {
     addEducation();
+
+    refreshDragDrop();
     updatePreview();
+
     toast("Education added.");
 });
 
@@ -496,17 +714,22 @@ document.addEventListener("click", event => {
     if (!button) return;
 
     const type = button.dataset.remove;
+
     const card = button.closest(
-        type === "experience" ? ".experience-item" : ".education-item"
+        type === "experience"
+            ? ".experience-item"
+            : ".education-item"
     );
 
     if (!card) return;
 
-    const list = type === "experience"
-        ? $$(".experience-item")
-        : $$(".education-item");
+    const selector = type === "experience"
+        ? ".experience-item"
+        : ".education-item";
 
-    if (list.length <= 1) {
+    const cards = $$(selector);
+
+    if (cards.length <= 1) {
         $$("input, textarea", card).forEach(input => {
             if (input.type === "checkbox") {
                 input.checked = false;
@@ -520,10 +743,13 @@ document.addEventListener("click", event => {
 
     updateCardTitles();
     updatePreview();
+
     toast("Item removed.");
 });
 
-// ==================== SKILLS ====================
+// ==========================================
+// SKILLS
+// ==========================================
 
 function renderSkills() {
     const container = $("#skillsContainer");
@@ -531,15 +757,20 @@ function renderSkills() {
     container.innerHTML = skills.map(skill => `
         <span class="skill-chip">
             ${escapeHTML(skill)}
+
             <button type="button"
                 data-skill-remove="${escapeHTML(skill)}"
-                aria-label="Remove ${escapeHTML(skill)}">&times;</button>
+                aria-label="Remove ${escapeHTML(skill)}">
+                &times;
+            </button>
         </span>
     `).join("");
 
-    $("#previewSkills").innerHTML = skills.length
-        ? skills.map(skill => `<span>${escapeHTML(skill)}</span>`).join("")
-        : "<span>Add your skills</span>";
+    $("#previewSkills").innerHTML = skills.map(skill => `
+        <span>${escapeHTML(skill)}</span>
+    `).join("");
+
+    $("#previewSkillsSection").hidden = skills.length === 0;
 }
 
 function addSkill() {
@@ -551,7 +782,9 @@ function addSkill() {
         return;
     }
 
-    if (skills.some(item => item.toLowerCase() === skill.toLowerCase())) {
+    if (skills.some(item =>
+        item.toLowerCase() === skill.toLowerCase()
+    )) {
         toast("This skill already exists.", false);
         return;
     }
@@ -562,11 +795,16 @@ function addSkill() {
     }
 
     skills.push(skill);
+
     input.value = "";
 
     renderSkills();
-    updatePreview();
+    updateProgress();
+    scheduleSave();
+
     input.focus();
+
+    toast("Skill added.");
 }
 
 $("#addSkillBtn").addEventListener("click", addSkill);
@@ -588,11 +826,143 @@ $("#skillsContainer").addEventListener("click", event => {
     skills = skills.filter(item => item !== skill);
 
     renderSkills();
-    updatePreview();
+    updateProgress();
+    scheduleSave();
+
     toast("Skill removed.");
 });
 
-// ==================== PROFILE PHOTO ====================
+// ==========================================
+// REORDER RESUME SECTIONS
+// ==========================================
+
+function reorderResumeSections() {
+    const paper = $("#resumePaper");
+
+    const elements = {
+        summary: $("#summarySection"),
+        experience: $("#previewExperienceSection"),
+        skills: $("#previewSkillsSection"),
+        education: $("#previewEducationSection")
+    };
+
+    sectionOrder.forEach(name => {
+        const element = elements[name];
+
+        if (element) {
+            paper.appendChild(element);
+        }
+    });
+
+    // Keep the resume footer at the bottom.
+    const footer = $(".resume-footer", paper);
+
+    if (footer) {
+        paper.appendChild(footer);
+    }
+}
+
+// Enable dragging of resume sections using their headings.
+function enableSectionReordering() {
+    const paper = $("#resumePaper");
+
+    let draggedSection = null;
+
+    const getSection = target =>
+        target.closest(
+            "#summarySection, #previewExperienceSection, " +
+            "#previewSkillsSection, #previewEducationSection"
+        );
+
+    paper.addEventListener("dragstart", event => {
+        const section = getSection(event.target);
+
+        if (!section) return;
+
+        if (!event.target.closest(".resume-section-title")) {
+            event.preventDefault();
+            return;
+        }
+
+        draggedSection = section;
+
+        section.classList.add("section-dragging");
+
+        event.dataTransfer.effectAllowed = "move";
+
+        event.dataTransfer.setData(
+            "text/plain",
+            section.id
+        );
+    });
+
+    paper.addEventListener("dragover", event => {
+        if (!draggedSection) return;
+
+        const target = getSection(event.target);
+
+        if (!target || target === draggedSection) return;
+
+        event.preventDefault();
+
+        const rect = target.getBoundingClientRect();
+
+        const after =
+            event.clientY > rect.top + rect.height / 2;
+
+        if (after) {
+            target.after(draggedSection);
+        } else {
+            target.before(draggedSection);
+        }
+    });
+
+    paper.addEventListener("drop", event => {
+        if (!draggedSection) return;
+
+        event.preventDefault();
+
+        sectionOrder.splice(0, sectionOrder.length);
+
+        const ids = {
+            summary: "summarySection",
+            experience: "previewExperienceSection",
+            skills: "previewSkillsSection",
+            education: "previewEducationSection"
+        };
+
+        $$(".resume-section", paper).forEach(section => {
+            const match = Object.keys(ids).find(
+                key => ids[key] === section.id
+            );
+
+            if (match) sectionOrder.push(match);
+        });
+
+        scheduleSave();
+    });
+
+    paper.addEventListener("dragend", () => {
+        if (draggedSection) {
+            draggedSection.classList.remove(
+                "section-dragging"
+            );
+        }
+
+        draggedSection = null;
+    });
+
+    $$(".resume-section-title", paper).forEach(heading => {
+        heading.draggable = true;
+        heading.title = "Drag this heading to reorder sections";
+    });
+}
+
+enableSectionReordering();
+
+// ==========================================
+// PROFILE PHOTO
+// ==========================================
 
 $("#profilePhoto").addEventListener("change", event => {
     const file = event.target.files[0];
@@ -606,7 +976,7 @@ $("#profilePhoto").addEventListener("change", event => {
     }
 
     if (file.size > 3 * 1024 * 1024) {
-        toast("Please choose an image smaller than 3 MB.", false);
+        toast("Choose an image smaller than 3 MB.", false);
         event.target.value = "";
         return;
     }
@@ -617,9 +987,11 @@ $("#profilePhoto").addEventListener("change", event => {
         photoData = reader.result;
 
         const preview = $("#photoPreview");
+
         preview.innerHTML = "";
 
         const img = document.createElement("img");
+
         img.src = photoData;
         img.alt = "Uploaded profile photo";
 
@@ -627,18 +999,25 @@ $("#profilePhoto").addEventListener("change", event => {
 
         $("#previewPhoto").src = photoData;
         $("#previewPhoto").hidden = false;
+
         $("#previewPhotoPlaceholder").hidden = true;
 
-        updatePreview();
+        updateProgress();
+        scheduleSave();
+
         toast("Profile photo updated.");
     };
 
-    reader.onerror = () => toast("Could not read this image.", false);
+    reader.onerror = () => {
+        toast("Could not read this image.", false);
+    };
 
     reader.readAsDataURL(file);
 });
 
-// ==================== TEMPLATE SWITCHING ====================
+// ==========================================
+// TEMPLATES
+// ==========================================
 
 $$(".template-option").forEach(button => {
     button.addEventListener("click", () => {
@@ -650,80 +1029,109 @@ $$(".template-option").forEach(button => {
             "template-minimal"
         );
 
-        $("#resumePaper").classList.add(`template-${template}`);
+        $("#resumePaper").classList.add(
+            `template-${template}`
+        );
 
         $$(".template-option").forEach(option => {
             const active = option === button;
 
             option.classList.toggle("active", active);
-            option.setAttribute("aria-pressed", String(active));
+
+            option.setAttribute(
+                "aria-pressed",
+                String(active)
+            );
         });
 
         scheduleSave();
-        toast(`${template.charAt(0).toUpperCase() + template.slice(1)} template selected.`);
+
+        toast(
+            `${template.charAt(0).toUpperCase() +
+            template.slice(1)} template selected.`
+        );
     });
 });
 
-// ==================== ZOOM ====================
+// ==========================================
+// ZOOM
+// ==========================================
 
 function setZoom(value) {
     zoom = Math.max(0.4, Math.min(1.2, value));
 
-    $("#zoomLevel").textContent = `${Math.round(zoom * 100)}%`;
+    $("#zoomLevel").textContent =
+        `${Math.round(zoom * 100)}%`;
 
-    $("#resumePaper").style.setProperty("--resume-scale", zoom);
+    $("#resumePaper").style.setProperty(
+        "--resume-scale",
+        zoom
+    );
 
     $("#zoomOut").disabled = zoom <= 0.4;
     $("#zoomIn").disabled = zoom >= 1.2;
 }
 
-$("#zoomIn").addEventListener("click", () => setZoom(zoom + 0.1));
-$("#zoomOut").addEventListener("click", () => setZoom(zoom - 0.1));
+$("#zoomIn").addEventListener("click", () => {
+    setZoom(zoom + 0.1);
+});
 
-// ==================== FULLSCREEN ====================
+$("#zoomOut").addEventListener("click", () => {
+    setZoom(zoom - 0.1);
+});
+
+// ==========================================
+// FULLSCREEN PREVIEW
+// ==========================================
+
+function closeFullscreen() {
+    const panel = $(".preview-panel");
+
+    panel.classList.remove("is-fullscreen");
+
+    document.body.style.overflow = "";
+
+    $("#fullscreenBtn").innerHTML =
+        '<i class="fa-solid fa-expand"></i>';
+
+    $("#fullscreenBtn").title = "Toggle preview fullscreen";
+}
 
 $("#fullscreenBtn").addEventListener("click", () => {
     const panel = $(".preview-panel");
-    const fullscreen = panel.classList.toggle("is-fullscreen");
 
-    document.body.style.overflow = fullscreen ? "hidden" : "";
-
-    $("#fullscreenBtn").innerHTML = fullscreen
-        ? '<i class="fa-solid fa-compress"></i>'
-        : '<i class="fa-solid fa-expand"></i>';
-
-    $("#fullscreenBtn").title = fullscreen
-        ? "Exit fullscreen"
-        : "Toggle preview fullscreen";
-});
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        const panel = $(".preview-panel");
-
-        if (panel.classList.contains("is-fullscreen")) {
-            panel.classList.remove("is-fullscreen");
-            document.body.style.overflow = "";
-
-            $("#fullscreenBtn").innerHTML =
-                '<i class="fa-solid fa-expand"></i>';
-        }
-
-        $("#resetModal").hidden = true;
+    if (panel.classList.contains("is-fullscreen")) {
+        closeFullscreen();
+        return;
     }
+
+    panel.classList.add("is-fullscreen");
+
+    document.body.style.overflow = "hidden";
+
+    $("#fullscreenBtn").innerHTML =
+        '<i class="fa-solid fa-compress"></i>';
+
+    $("#fullscreenBtn").title = "Exit fullscreen";
 });
 
-// ==================== MOBILE MENU ====================
+// ==========================================
+// MOBILE NAVIGATION
+// ==========================================
 
 $("#mobileMenuBtn").addEventListener("click", () => {
     const nav = $(".nav-links");
+
     const isOpen = nav.classList.toggle("open");
 
     $("#mobileMenuBtn").innerHTML = isOpen
         ? '<i class="fa-solid fa-xmark"></i>'
         : '<i class="fa-solid fa-bars"></i>';
 
-    $("#mobileMenuBtn").setAttribute("aria-expanded", String(isOpen));
+    $("#mobileMenuBtn").setAttribute(
+        "aria-expanded",
+        String(isOpen)
+    );
 });
 
 $$(".nav-links a").forEach(link => {
@@ -733,11 +1141,24 @@ $$(".nav-links a").forEach(link => {
         $("#mobileMenuBtn").innerHTML =
             '<i class="fa-solid fa-bars"></i>';
 
-        $("#mobileMenuBtn").setAttribute("aria-expanded", "false");
+        $("#mobileMenuBtn").setAttribute(
+            "aria-expanded",
+            "false"
+        );
     });
 });
 
-// ==================== COMPLETION PROGRESS ====================
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeFullscreen();
+
+        $("#resetModal").hidden = true;
+    }
+});
+
+// ==========================================
+// COMPLETION PROGRESS
+// ==========================================
 
 function updateProgress() {
     const checks = [
@@ -754,13 +1175,20 @@ function updateProgress() {
     ];
 
     const completed = checks.filter(Boolean).length;
-    const percentage = Math.round(completed / checks.length * 100);
+
+    const percentage = Math.round(
+        completed / checks.length * 100
+    );
 
     $("#progressText").textContent = `${percentage}%`;
-    $("#progressFill").style.width = `${percentage}%`;
+
+    $("#progressFill").style.width =
+        `${percentage}%`;
 }
 
-// ==================== LIVE PREVIEW ====================
+// ==========================================
+// LIVE PREVIEW
+// ==========================================
 
 function updatePreview() {
     updatePersonalPreview();
@@ -768,6 +1196,9 @@ function updatePreview() {
     updateEducationPreview();
     renderSkills();
     updateProgress();
+
+    reorderResumeSections();
+
     scheduleSave();
 }
 
@@ -783,7 +1214,9 @@ document.addEventListener("change", event => {
     }
 });
 
-// ==================== AUTOSAVE ====================
+// ==========================================
+// AUTOSAVE
+// ==========================================
 
 function collectData() {
     const personal = {};
@@ -798,7 +1231,10 @@ function collectData() {
         education: collectEducation(),
         skills,
         photoData,
-        template: $(".template-option.active")?.dataset.template || "modern"
+        template:
+            $(".template-option.active")?.dataset.template ||
+            "modern",
+        sectionOrder
     };
 }
 
@@ -809,24 +1245,36 @@ function scheduleSave() {
 
     saveTimer = setTimeout(() => {
         try {
-            localStorage.setItem(storageKey, JSON.stringify(collectData()));
+            localStorage.setItem(
+                storageKey,
+                JSON.stringify(collectData())
+            );
+
             $("#saveStatus").textContent = "Saved locally";
         } catch (error) {
-            $("#saveStatus").textContent = "Not saved";
-            console.warn("Resume autosave failed:", error);
+            $("#saveStatus").textContent = "Storage full";
+
+            console.warn(
+                "Resume autosave failed:",
+                error
+            );
         }
-    }, 350);
+    }, 400);
 }
 
 function loadData() {
+    let data;
+
     try {
         const saved = localStorage.getItem(storageKey);
 
         if (!saved) return false;
 
-        const data = JSON.parse(saved);
+        data = JSON.parse(saved);
 
-        if (!data || typeof data !== "object") return false;
+        if (!data || typeof data !== "object") {
+            return false;
+        }
 
         personalFields.forEach(field => {
             const value = data.personal?.[field];
@@ -836,21 +1284,32 @@ function loadData() {
             }
         });
 
-        if (Array.isArray(data.experiences) && data.experiences.length) {
+        if (
+            Array.isArray(data.experiences) &&
+            data.experiences.length
+        ) {
             $("#experienceList").innerHTML = "";
 
-            data.experiences.slice(0, 20).forEach(addExperience);
+            data.experiences
+                .slice(0, 20)
+                .forEach(addExperience);
         }
 
-        if (Array.isArray(data.education) && data.education.length) {
+        if (
+            Array.isArray(data.education) &&
+            data.education.length
+        ) {
             $("#educationList").innerHTML = "";
 
-            data.education.slice(0, 20).forEach(addEducation);
+            data.education
+                .slice(0, 20)
+                .forEach(addEducation);
         }
 
         if (Array.isArray(data.skills)) {
             skills = data.skills
                 .filter(skill => typeof skill === "string")
+                .map(skill => skill.slice(0, 60))
                 .slice(0, 30);
         }
 
@@ -863,9 +1322,11 @@ function loadData() {
 
             $("#previewPhoto").src = photoData;
             $("#previewPhoto").hidden = false;
+
             $("#previewPhotoPlaceholder").hidden = true;
 
             const img = document.createElement("img");
+
             img.src = photoData;
             img.alt = "Uploaded profile photo";
 
@@ -873,7 +1334,11 @@ function loadData() {
             $("#photoPreview").appendChild(img);
         }
 
-        const template = ["modern", "classic", "minimal"].includes(data.template)
+        const template = [
+            "modern",
+            "classic",
+            "minimal"
+        ].includes(data.template)
             ? data.template
             : "modern";
 
@@ -883,29 +1348,65 @@ function loadData() {
             "template-minimal"
         );
 
-        $("#resumePaper").classList.add(`template-${template}`);
+        $("#resumePaper").classList.add(
+            `template-${template}`
+        );
 
         $$(".template-option").forEach(button => {
-            const active = button.dataset.template === template;
+            const active =
+                button.dataset.template === template;
 
             button.classList.toggle("active", active);
-            button.setAttribute("aria-pressed", String(active));
+
+            button.setAttribute(
+                "aria-pressed",
+                String(active)
+            );
         });
+
+        if (Array.isArray(data.sectionOrder)) {
+            const allowed = [
+                "summary",
+                "experience",
+                "skills",
+                "education"
+            ];
+
+            const validOrder = data.sectionOrder.filter(
+                name => allowed.includes(name)
+            );
+
+            sectionOrder.splice(
+                0,
+                sectionOrder.length,
+                ...new Set(validOrder),
+                ...allowed.filter(
+                    name => !validOrder.includes(name)
+                )
+            );
+        }
 
         updateCardTitles();
 
         return true;
 
     } catch (error) {
-        console.warn("Could not restore saved resume:", error);
+        console.warn(
+            "Could not restore saved resume:",
+            error
+        );
+
         return false;
     }
 }
 
-// ==================== RESET RESUME ====================
+// ==========================================
+// RESET RESUME
+// ==========================================
 
 $("#resetBtn").addEventListener("click", () => {
     $("#resetModal").hidden = false;
+
     $("#cancelResetBtn").focus();
 });
 
@@ -931,6 +1432,7 @@ $("#confirmResetBtn").addEventListener("click", () => {
     addEducation();
 
     skills = ["HTML5", "CSS3", "JavaScript"];
+
     photoData = "";
 
     $("#profilePhoto").value = "";
@@ -940,7 +1442,17 @@ $("#confirmResetBtn").addEventListener("click", () => {
 
     $("#previewPhoto").src = "";
     $("#previewPhoto").hidden = true;
+
     $("#previewPhotoPlaceholder").hidden = false;
+
+    sectionOrder.splice(
+        0,
+        sectionOrder.length,
+        "summary",
+        "experience",
+        "skills",
+        "education"
+    );
 
     $("#resumePaper").classList.remove(
         "template-classic",
@@ -950,21 +1462,31 @@ $("#confirmResetBtn").addEventListener("click", () => {
     $("#resumePaper").classList.add("template-modern");
 
     $$(".template-option").forEach(button => {
-        const active = button.dataset.template === "modern";
+        const active =
+            button.dataset.template === "modern";
 
         button.classList.toggle("active", active);
-        button.setAttribute("aria-pressed", String(active));
+
+        button.setAttribute(
+            "aria-pressed",
+            String(active)
+        );
     });
 
     try {
         localStorage.removeItem(storageKey);
     } catch (error) {
-        console.warn("Could not clear saved resume:", error);
+        console.warn(
+            "Could not clear saved resume:",
+            error
+        );
     }
 
     $("#resetModal").hidden = true;
 
     showTab(0);
+
+    refreshDragDrop();
     updatePreview();
 
     $("#saveStatus").textContent = "Ready to create";
@@ -972,29 +1494,51 @@ $("#confirmResetBtn").addEventListener("click", () => {
     toast("Resume reset successfully.");
 });
 
-// ==================== PDF DOWNLOAD ====================
+// ==========================================
+// PROFESSIONAL PDF / PRINT EXPORT
+// ==========================================
 
 function downloadPDF() {
     updatePreview();
 
-    toast("Choose Save as PDF in the print window.");
+    toast(
+        "In the print window, select Save as PDF."
+    );
 
-    setTimeout(() => window.print(), 150);
+    setTimeout(() => {
+        window.print();
+    }, 250);
 }
 
-$("#downloadBtn").addEventListener("click", downloadPDF);
-$("#previewDownloadBtn").addEventListener("click", downloadPDF);
+$("#downloadBtn").addEventListener(
+    "click",
+    downloadPDF
+);
 
-// ==================== CURRENT YEAR ====================
+$("#previewDownloadBtn").addEventListener(
+    "click",
+    downloadPDF
+);
 
-$("#currentYear").textContent = new Date().getFullYear();
+// ==========================================
+// CURRENT YEAR
+// ==========================================
 
-// ==================== INITIALIZE APP ====================
+$("#currentYear").textContent =
+    new Date().getFullYear();
+
+// ==========================================
+// INITIALIZE APPLICATION
+// ==========================================
 
 const restored = loadData();
 
 showTab(0);
+
 setZoom(1);
+
+refreshDragDrop();
+
 updatePreview();
 
 $("#saveStatus").textContent = restored
