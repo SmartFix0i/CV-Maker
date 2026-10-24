@@ -287,6 +287,8 @@ function addExperience(data = {}) {
 
     $("#experienceList").appendChild(card);
     updateCardTitles();
+    refreshDragDrop();
+
 }
 
 // ==================== EDUCATION ====================
@@ -392,6 +394,9 @@ function addEducation(data = {}) {
 
     $("#educationList").appendChild(card);
     updateCardTitles();
+    refreshDragDrop();
+
+    
 }
 
 // ==================== CARD TITLES ====================
@@ -407,6 +412,69 @@ function updateCardTitles() {
             `<i class="fa-solid fa-book-open"></i> Education ${index + 1}`;
     });
 }
+
+
+/* ========== DRAG & DROP REORDERING ========== */
+
+function enableDragDrop(containerSelector, itemSelector) { const container = document.querySelector(containerSelector);
+
+if (!container) return;
+
+let draggedItem = null;
+
+container.querySelectorAll(itemSelector).forEach(item => {
+    item.draggable = true;
+    item.style.cursor = "grab";
+
+    // Drag start
+    item.addEventListener("dragstart", event => {
+        draggedItem = item;
+
+        item.classList.add("dragging");
+
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", "reorder");
+    });
+
+    // Drag over
+    item.addEventListener("dragover", event => {
+        event.preventDefault();
+
+        if (!draggedItem || draggedItem === item) return;
+
+        const rect = item.getBoundingClientRect();
+        const insertAfter = event.clientY > rect.top + rect.height / 2;
+
+        if (insertAfter) {
+            item.after(draggedItem);
+        } else {
+            item.before(draggedItem);
+        }
+    });
+
+    // Drop
+    item.addEventListener("drop", event => {
+        event.preventDefault();
+        updateCardTitles();
+        updatePreview();
+    });
+
+    // Drag end
+    item.addEventListener("dragend", () => {
+        item.classList.remove("dragging");
+        draggedItem = null;
+
+        updateCardTitles();
+        updatePreview();
+    });
+});
+
+
+}
+
+function refreshDragDrop() { enableDragDrop("#experienceList", ".experience-item"); enableDragDrop("#educationList", ".education-item"); }
+
+// Initialize drag and drop refreshDragDrop();
 
 // ==================== ADD / REMOVE ITEMS ====================
 
